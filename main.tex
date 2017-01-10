@@ -1,0 +1,67 @@
+\documentclass[10pt]{article}
+
+\usepackage[T1,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+
+\newcommand{\code}{\texttt}
+
+\title{Независимая от компилятора библиотека точной сборки мусора для языка C++}
+\author{
+        Евгений Моисеенко \\
+        %% Санкт-Петербургский государственный университет\\
+        %% Математико-механический факультет\\
+            \and
+        Даниил Березун\\
+        %% Санкт-Петербургский государственный университет\\
+        %% Математико-механический факультет\\
+}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+В данной работе представлен сборщик мусора для языка C++.
+Представленный сборщик мусора является точным и не требует поддержки со стороны компилятора, 
+а также поддерживает сжатие и параллельную маркировку (\textit{concurrent marking}).
+Библиотека определяет класс умного указателя --- \code{gc\_ptr}.
+Представленный в работе подход позволяет совмещать использование 
+трассирующего сборщика мусора с другими методами управления памятью в C++, 
+в том числе с ручным управлением памятью и методами основанными на использовании
+умных указателей \code{std::unique\_ptr} и \code{std::shared\_ptr}. 
+
+\end{abstract}
+
+\section{Introduction}
+
+Большинство современных языков программирования активно использует \emph{динамическое распределение памяти}, 
+при котором выделение памяти осуществляется во время исполнения программы. 
+\emph{Автоматическое управление памятью} избавляет программиста от необходимости вручную освобождать выделенную память, 
+устраняя тем самым целый класс возможных ошибок и увеличивая безопасность исходного кода программы. 
+\emph{Сборка мусора} давно стала стандартом в области автоматического управления памятью.
+
+
+Язык C++ разрабатывался с расчетом на использование ручного управления памятью.
+Добавление средств автоматического управления памятью на протяжении многих лет являлось предметом долгих дискуссий. 
+
+
+\paragraph{Outline}
+The remainder of this article is organized as follows.
+Section~\ref{previous work} gives account of previous work.
+Our new and exciting results are described in Section~\ref{results}.
+Finally, Section~\ref{conclusions} gives the conclusions.
+
+\section{Previous work}\label{previous work}
+A much longer \LaTeXe{} example was written by Gil~\cite{Gil:02}.
+
+\section{Results}\label{results}
+In this section we describe the results.
+
+\section{Conclusions}\label{conclusions}
+We worked hard, and achieved very little.
+
+\bibliographystyle{abbrv}
+\bibliography{main}
+
+\end{document}
