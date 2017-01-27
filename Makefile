@@ -1,6 +1,9 @@
-SOURCE="main.tex"
+SOURCE="main"
 
 all:
+	pdflatex $(SOURCE)
+	bibtex $(SOURCE)
+	pdflatex $(SOURCE)
 	pdflatex $(SOURCE)
 
 clean:
