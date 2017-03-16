@@ -1,2 +1,6 @@
 *.tex.backup
+*.dvi
+*.bak
+*.aux
+*.log
 
