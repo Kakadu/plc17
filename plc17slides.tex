@@ -18,6 +18,7 @@
 %\usepackage{courier}
 \usepackage{pstricks}
 \usepackage{tikz}
+\usepackage{pdfpages}
 
 \makeatletter
 \newcolumntype{e}[1]{%--- Enumerated cells ---
@@ -199,7 +200,7 @@ let rec append xs ys =
       h :: (append tl ys)!\pause!
  \end{lstlisting} &
  \begin{lstlisting}[mathescape=true,language=ocaml]
-let rec append$^o$ xs ys xys!\pause! =
+let rec append$^o$ xs ys xys =!\pause!
   ((xs === nil) &&& (xys === ys))!\pause!
   |||
   (fresh (h t tys)!\pause!
@@ -227,28 +228,31 @@ let rec append$^o$ xs ys xys!\pause! =
 \vskip5mm
 \end{frame}
 
-\begin{frame}[fragile]{A Sketch of Minimalistic Implementation}
+\begin{frame}[fragile]{Набросок минимальной реализации}
 Jason Hemann, Daniel P. Friedman. \emph{$\mu$Kanren: A Minimal Functional
 Core for Relational Programming} // Scheme'13:
 \vskip5mm
 \small
 \pause
 \begin{tabular}{p{5cm}c}
-Logic variables & $X=\{x_1,x_2,\dots\}$ \vspace*{-\baselineskip}\pause \\
-Symbols (constructors) & $S=\{s_1,s_2,\dots\}$ \vspace*{-\baselineskip}\pause \\
-Terms & $T=X\cup\{s\;(t_1,\dots,t_k)\mid s\in S,\; t_i \in T\}$ \vspace*{-\baselineskip}\pause \\
-Substitutions & $\Sigma=T^X$ \vspace*{-\baselineskip}\pause \\
-Unification & $(\equiv)\colon\Sigma\to T\to T\to\Sigma_\perp$ \vspace*{-\baselineskip}\pause \\
-State (a substitution + some info to create fresh variables) & $\sigma$ \vspace*{-\baselineskip}\pause \\
-Goal (a function from a state to a stream of states) & $g : \sigma\to\sigma\;\inml{stream}$ \vspace*{-\baselineskip}\pause \\
-Conjunction $g \wedge g$ & ``bind'' \vspace*{-\baselineskip}\pause \\
-Disjunction $g \vee g$ & ``mplus'' \vspace*{-\baselineskip}\pause \\
-Refinement of answers & $\inml{refine} \colon \sigma\to X\to T$ \vspace*{-\baselineskip}\pause
+Логические переменные  & $X=\{x_1,x_2,\dots\}$ \vspace*{-\baselineskip} \\
+Символы (конструкторы) & $S=\{s_1,s_2,\dots\}$ \vspace*{-\baselineskip} \\
+Термы                  & $T=X\cup\{s\;(t_1,\dots,t_k)\mid s\in S,\; t_i \in T\}$ \vspace*{-\baselineskip} \\
+Подстановки            & $\Sigma=T^X$ \vspace*{-\baselineskip} \\
+\\\pause
+Унификация & $(\equiv)\colon\Sigma\to T\to T\to\Sigma_\perp$ \vspace*{-\baselineskip}\\
+\\\pause
+State (подстановка + как создавать новые логические переменные) & $\sigma$ \vspace*{-\baselineskip}\\
+Goal (функция из состояния в ленивый список состояний) & $g : \sigma\to\sigma\;\inml{stream}$ \vspace*{-\baselineskip} \\
+Конъюнкция $g \wedge g$ & ``bind''  \vspace*{-\baselineskip} \\
+Дизъюнкция $g \vee   g$ & ``mplus'' \vspace*{-\baselineskip} \\
+
+Refinement: извлечение посчитанных ответов & $\inml{refine} \colon \sigma\to X\to T$ \vspace*{-\baselineskip}\pause
 \end{tabular}
 
-\begin{center}
-{\bf Unification and refinement are virtually the main things to implement}
-\end{center}
+% \begin{center}
+% {\bf Unification and refinement are virtually the main things to implement}
+% \end{center}
 \end{frame}
 
 % \begin{frame}[fragile]{Dealing with Typed Terms}
@@ -281,29 +285,49 @@ Refinement of answers & $\inml{refine} \colon \sigma\to X\to T$ \vspace*{-\basel
 %
 % \end{frame}
 
-\begin{frame}[fragile]{Polymorphic Unification}
+\begin{frame}[fragile]{Полиморфная унификация}
 
-Works for all \emph{logic} types $\oo{\alpha}$:
+Работает для всех \emph{логических} типов $\alpha\; logic$ (он же $\oo{\alpha}$):
 
 $$
 \equiv\;\colon \Sigma\to\oo{\alpha}\to\oo{\alpha}\to\Sigma_{\perp}
 $$
 \pause
 
-Is implemented as the standard algorithm with triangular substitution
-and occurs check by traversing runtime representation, using
-unsafe interface \lstinline{Obj}.
+Реализована как сравнение представлений значений в памяти.
 \pause
-\vskip3mm
-Pitfalls:
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{img1.eps}
+\end{figure}
 
-\begin{itemize}
-\item compiler loses the track of types after the results of unification
-are stored in a substitution $\leadsto$ refinement has to be implemented untyped as well;\pause
-\item the safety of unification/refinement implementation has to be justified separately;\pause
-\item states must not escape their scope (otherwise the coherence between variable
-types and terms, stored in states, can be lost).
-\end{itemize}
+% \begin{lstlisting}[mathescape=true]
+% type 'a logic = Var of int | Value of 'a
+% ...
+% val x : 'a logic
+% val s : string logic
+% ...!\pause!
+% (x === s)
+% ...
+% !\pause!
+% val n : int logic
+% ... (x === n) ...
+%
+% Error: This expression has type int logic
+%        but an expression was expected of type string logic
+%        Type int is not compatible with type string
+% \end{lstlisting}
+
+\vskip3mm
+% Pitfalls:
+%
+% \begin{itemize}
+% \item compiler loses the track of types after the results of unification
+% are stored in a substitution $\leadsto$ refinement has to be implemented untyped as well;\pause
+% \item the safety of unification/refinement implementation has to be justified separately;\pause
+% \item states must not escape their scope (otherwise the coherence between variable
+% types and terms, stored in states, can be lost).
+% \end{itemize}
 \end{frame}
 
 % \begin{frame}[fragile]{Properties of Polymorphic Unification}
@@ -325,80 +349,100 @@ types and terms, stored in states, can be lost).
 % of the state that variable was created in.
 % \end{frame}
 
-\begin{frame}[fragile]{Capturing the States}
-States and refinement function are hidden and can not be accessed directly.\pause
-\vskip3mm
-The refinement is performed transparently as the top-level running primitive
-is invoked:\pause
-\vskip3mm
-\begin{lstlisting}[mathescape=true]
-    run $\bar{n}$ (fun $q_1\;q_2\;\dots\;q_n\;$ -> $\;\;$g) (fun $a_1\;a_2\;\dots\;a_n\;$ -> $\;\;$h)
-\end{lstlisting}\pause
+% \begin{frame}[fragile]{Capturing the States}
+% States and refinement function are hidden and can not be accessed directly.\pause
+% \vskip3mm
+% The refinement is performed transparently as the top-level running primitive
+% is invoked:\pause
+% \vskip3mm
+% \begin{lstlisting}[mathescape=true]
+%     run $\bar{n}$ (fun $q_1\;q_2\;\dots\;q_n\;$ -> $\;\;$g) (fun $a_1\;a_2\;\dots\;a_n\;$ -> $\;\;$h)
+% \end{lstlisting}\pause
+%
+% Here:
+% {\small
+% \begin{itemize}
+% \item \lstinline{run}~--- the only way to run goals;
+% \item $\bar{n}$~--- a \emph{numeral}, describing the number of fresh variables,
+% available for running the goal \lstinline{g}; numerals can be manufactured
+% \emph{quantum satis} using the successor function, which is provided as well;
+% \item $q_1, q_2\dots q_n$~--- these fresh variables;
+% \item $a_1, a_2\dots a_n$~--- the streams of \emph{refined} answers for the variables
+% $q_1, q_2\dots q_n$ respectively;
+% \item \lstinline{h}~--- a \emph{handler}, which can make use of refined answers.
+% \end{itemize}
+% }
+%
+% The framework guarantees, that variables are refined only in correct states.
+%
+% \end{frame}
 
-Here:
-{\small
+% \begin{frame}[fragile]{Converting from- and to User Types}
+%
+% \small
+% Injecting a user-type into logic domain and projecting the
+% logical results back:
+%
+% $$
+% \begin{array}{rcl}
+% \uparrow_t&\colon &t \to \oo{t}\\
+% \downarrow_t&\colon& \oo{t} \to t
+% \end{array}
+% $$
+% \pause
+% Can be done systematically using generic programming:
+%
+% \begin{itemize}
+% \item ``$\uparrow_\forall$'', ``$\downarrow_\forall$'' are polymorphic shallow injection/projection;
+% \item for the deep case, make the type a functor and use $fmap$.
+% \end{itemize}
+% \pause
+% \begin{lstlisting}[mathescape=true]
+% type tree = Leaf of int | Node of tree * tree!\pause!
+% $\leadsto$
+% type ('int, 'tree) tree$_f$ = Leaf of 'int | Node of 'tree * 'tree!\pause!
+% type tree  = (int, tree) tree$_f$!\pause!
+% type tree$^o$ = ((int$^o$, tree$^o$) tree$_f$)$^o$!\pause!
+%
+% let rec ($\uparrow_{\mbox{\small\ttfamily tree}}$) t = $\uparrow_\forall$ (!\graybox{$fmap_{\mbox{\small\ttfamily tree}_f}$}! ($\uparrow_\forall$) ($\uparrow_{\mbox{\small\ttfamily tree}}$) t)!\pause!
+% let rec ($\downarrow_{\mbox{\small\ttfamily tree}}$) l = !\graybox{$fmap_{\mbox{\small\ttfamily tree}_f}$}! ($\downarrow_\forall$) ($\downarrow_{\mbox{\small\ttfamily tree}}$) ($\downarrow_\forall$ l)
+%
+% \end{lstlisting}
+% \end{frame}
+
+\begin{frame}[fragile]{Промежуточные результаты}
+Были представлены на ML Workshop 2016 (совмещённым с ICFP 2016)
 \begin{itemize}
-\item \lstinline{run}~--- the only way to run goals;
-\item $\bar{n}$~--- a \emph{numeral}, describing the number of fresh variables,
-available for running the goal \lstinline{g}; numerals can be manufactured
-\emph{quantum satis} using the successor function, which is provided as well;
-\item $q_1, q_2\dots q_n$~--- these fresh variables;
-\item $a_1, a_2\dots a_n$~--- the streams of \emph{refined} answers for the variables
-$q_1, q_2\dots q_n$ respectively;
-\item \lstinline{h}~--- a \emph{handler}, which can make use of refined answers.
+\item Типобезопасное встраивание miniKanren в OCaml
+\item Полиморфная унификация
+\item Регулярный подход для описания типов
 \end{itemize}
+
+\end{frame}
+
+{
+\setbeamercolor{background canvas}{bg=}
+\includepdf[pages={1}]{histo1.pdf}
 }
 
-The framework guarantees, that variables are refined only in correct states.
+\begin{frame}[fragile]{Дальнейшие задачи}
+  \begin{itemize}
+  \item Найти причину замедления
+  \item Ускорить
+  \item Подход должен остаться типобезопасным
+  \end{itemize}
 
 \end{frame}
 
-\begin{frame}[fragile]{Converting from- and to User Types}
-
-\small
-Injecting a user-type into logic domain and projecting the
-logical results back:
-
-$$
-\begin{array}{rcl}
-\uparrow_t&\colon &t \to \oo{t}\\
-\downarrow_t&\colon& \oo{t} \to t
-\end{array}
-$$
-\pause
-Can be done systematically using generic programming:
-
-\begin{itemize}
-\item ``$\uparrow_\forall$'', ``$\downarrow_\forall$'' are polymorphic shallow injection/projection;
-\item for the deep case, make the type a functor and use $fmap$.
-\end{itemize}
-\pause
-\begin{lstlisting}[mathescape=true]
-type tree = Leaf of int | Node of tree * tree!\pause!
-$\leadsto$
-type ('int, 'tree) tree$_f$ = Leaf of 'int | Node of 'tree * 'tree!\pause!
-type tree  = (int, tree) tree$_f$!\pause!
-type tree$^o$ = ((int$^o$, tree$^o$) tree$_f$)$^o$!\pause!
-
-let rec ($\uparrow_{\mbox{\small\ttfamily tree}}$) t = $\uparrow_\forall$ (!\graybox{$fmap_{\mbox{\small\ttfamily tree}_f}$}! ($\uparrow_\forall$) ($\uparrow_{\mbox{\small\ttfamily tree}}$) t)!\pause!
-let rec ($\downarrow_{\mbox{\small\ttfamily tree}}$) l = !\graybox{$fmap_{\mbox{\small\ttfamily tree}_f}$}! ($\downarrow_\forall$) ($\downarrow_{\mbox{\small\ttfamily tree}}$) ($\downarrow_\forall$ l)
-
-\end{lstlisting}
-\end{frame}
-
-\begin{frame}[fragile]{Example}
-.
-\end{frame}
-
-\begin{frame}[fragile]{Current Implementation}
-\begin{itemize}
-\item Repository: \url{https://github.com/dboulytchev/OCanren}
-\item Implements $\mu$Kanren + disequality constraints
-\item Passes most of the original tests
-\item Outperforms $\mu$Kanren on long queries
-\end{itemize}
-
-\end{frame}
+% \begin{frame}[fragile]{Current Implementation}
+% \begin{itemize}
+% \item Repository: \url{https://github.com/dboulytchev/OCanren}
+% \item Implements $\mu$Kanren + disequality constraints
+% \item Passes most of the original tests
+% \item Outperforms $\mu$Kanren (\url{https://github.com/Kakadu/ocanren-perf})
+% \end{itemize}
+%
+% \end{frame}
 
 \begin{frame}[fragile]{last}
 
