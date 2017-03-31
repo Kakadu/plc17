@@ -247,7 +247,7 @@ Goal (функция из состояния в ленивый список со
 Конъюнкция $g \wedge g$ & ``bind''  \vspace*{-\baselineskip} \\
 Дизъюнкция $g \vee   g$ & ``mplus'' \vspace*{-\baselineskip} \\
 
-Refinement: извлечение посчитанных ответов & $\inml{refine} \colon \sigma\to X\to T$ \vspace*{-\baselineskip}\pause
+Refinement: извлечение посчитанных ответов & $\inml{refine} \colon \sigma\to X\to T$ \vspace*{-\baselineskip}
 \end{tabular}
 
 % \begin{center}
@@ -285,7 +285,7 @@ Refinement: извлечение посчитанных ответов & $\inml{
 %
 % \end{frame}
 
-\begin{frame}[fragile]{Полиморфная унификация}
+\begin{frame}[fragile]{Полиморфная унификация 1}
 
 Работает для всех \emph{логических} типов $\alpha\; logic$ (он же $\oo{\alpha}$):
 
@@ -295,11 +295,11 @@ $$
 \pause
 
 Реализована как сравнение представлений значений в памяти.
-\pause
-\begin{figure}
-\centering
-\includegraphics[width=0.5\textwidth]{img1.eps}
-\end{figure}
+% \pause
+% \begin{figure}
+% \centering
+% \includegraphics[width=0.5\textwidth]{img0.eps}
+% \end{figure}
 
 % \begin{lstlisting}[mathescape=true]
 % type 'a logic = Var of int | Value of 'a
@@ -330,6 +330,26 @@ $$
 % \end{itemize}
 \end{frame}
 
+
+\begin{frame}[fragile]{Подход для описания типов (на примере логического списка)}
+  \begin{lstlisting}[mathescape=true]
+  type 'a logic = Var of int | Value of 'a
+  ...!\pause!
+  type ('a, 'b) glist = Nil | Cons of 'a * 'b !\pause!
+
+  type 'a list = ('a, 'a list) glist (* Nil | Cons of 'a *) !\pause!
+
+  type 'a llist = ('a , 'a llist) glist logic !\pause!
+
+  ...
+  # Value Nil
+  -: 'a llist
+  # Value (Cons (Value 1), Value Nil)
+  -: int logic llist
+  # Value (Cons (Var 101), Value Nil)
+  -: int logic llist
+  \end{lstlisting}
+\end{frame}
 % \begin{frame}[fragile]{Properties of Polymorphic Unification}
 % It can be shown, that for our concrete implementation:
 %
@@ -431,6 +451,37 @@ $$
   \item Ускорить
   \item Подход должен остаться типобезопасным
   \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Полиморфная унификация 2}
+
+% \pause
+\begin{figure}
+\centering
+\includegraphics[width=0.7\textwidth]{img0.eps}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}[fragile]{Полиморфная унификация 3}
+
+% \pause
+\begin{figure}
+\centering
+\includegraphics[width=0.7\textwidth]{img1.eps}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}[fragile]{Полиморфная унификация 4}
+
+% \pause
+\begin{figure}
+\centering
+\includegraphics[width=0.9\textwidth]{img2.eps}
+\end{figure}
 
 \end{frame}
 
