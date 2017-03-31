@@ -337,9 +337,9 @@ $$
   ...!\pause!
   type ('a, 'b) glist = Nil | Cons of 'a * 'b !\pause!
 
-  type 'a list = ('a, 'a list) glist (* Nil | Cons of 'a *) !\pause!
+  type 'a  list = ('a, 'a  list) glist !\pause!
 
-  type 'a llist = ('a , 'a llist) glist logic !\pause!
+  type 'a llist = ('a, 'a llist) glist logic !\pause!
 
   ...
   # Value Nil
@@ -485,29 +485,111 @@ $$
 
 \end{frame}
 
-% \begin{frame}[fragile]{Current Implementation}
-% \begin{itemize}
-% \item Repository: \url{https://github.com/dboulytchev/OCanren}
-% \item Implements $\mu$Kanren + disequality constraints
-% \item Passes most of the original tests
-% \item Outperforms $\mu$Kanren (\url{https://github.com/Kakadu/ocanren-perf})
-% \end{itemize}
-%
-% \end{frame}
+\begin{frame}[fragile]{Полиморфная унификация 5}
 
-\begin{frame}[fragile]{last}
+% \pause
+\begin{figure}
+\centering
+\includegraphics[width=0.9\textwidth]{img3.eps}
+\end{figure}
 
-  \begin{lstlisting}[language=ml]
-  type 'a list = Nil | Cons of 'a * 'a list
-
-  let (_: int list) = Cons (1, Nil)
-  \end{lstlisting}
-
-  \begin{figure}
-  \centering
-  \includegraphics[width=0.5\textwidth]{img1.eps}
-  \end{figure}
 \end{frame}
 
+\begin{frame}[fragile]{Полиморфная унификация 6}
+\begin{figure}
+\centering
+\includegraphics[width=0.9\textwidth]{img4.eps}
+\end{figure}
+\end{frame}
 
+\begin{frame}[fragile]{Полиморфная унификация 7: сравнение деревьев для двух подходов}
+\begin{figure}
+\centering
+\includegraphics[width=0.9\textwidth]{img5.eps}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]{План улучшения реализации}
+  \begin{itemize}
+  \item Новое представление деревьев
+    \begin{itemize}
+      \item{Значению нельзя присвоить конкретный тип, нужен абстрактный тип значений.}
+      \item{Предоставить интерфейс для конструирования логических значений}
+      \item{Дополнительные действия по преобразованию абстрактного логического значения в типизируемое}
+    \end{itemize}
+  \item Модернизировать подход по описанию типов логических значений
+  \item Не потерять типовую безопасность
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Конструирование логических значений для простых типов}
+  \begin{lstlisting}[language=ml]
+  type ('a, 'b) injected!\pause!
+
+  val lift: 'a -> ('a,'a) injected
+  val inj : ('a,'b) injected -> ('a,'b logic) injected
+  \end{lstlisting}
+  \pause
+  Например для чисел
+  \begin{lstlisting}[language=ml]
+  # inj (lift 5)
+  -: (int, int logic) injected
+  \end{lstlisting}
+  \pause
+  Оба введенных примитива оставляют переданное значение как есть (identity)
+\end{frame}
+
+\begin{frame}[fragile]{Конструирование логических значений для сложных типов}
+  \begin{lstlisting}[language=ml]
+  module Option = struct
+    type 'a option = None | Some of 'a
+    let fmap = ....
+  end!\pause!
+
+  # Make1(Option).distrib
+  ...!\pause!
+  # let some x  = inj @@ distrib (Some x)
+  -: ('a, 'b) injected -> ('a option, 'b option logic) injected
+  \end{lstlisting}
+  \pause
+
+  Здесь \emph{fmap} нужен для доказательство того, что тип регулярный.\pause\\
+  Примитив \emph{distrib} позволяет ``снять'' тип со значения ничего не делая со
+  значением (он тоже identity).
+
+\end{frame}
+
+\begin{frame}[fragile]{Восстановление посчитанных значений}
+  Необходимо, так как значения в типе \emph{(\_,\_) injected} хранятся в
+  нетипизированном виде.
+
+  \begin{lstlisting}[language=ml]
+    module Option = struct
+      type 'a option = None | Some of 'a
+      let fmap = ....
+    end!\pause!
+
+    # Make1(Option).reify
+    -: ( ('a,'b) injected -> 'b) -> !\pause!
+       ('a option, 'b option logic) injected -> 'b option logic
+
+  \end{lstlisting}
+
+  При построении \emph{reify} функция \emph{fmap} используется по существу.
+\end{frame}
+
+\begin{frame}[fragile]{Текущая реализация}
+\begin{itemize}
+\item Репозиторий: \url{https://github.com/dboulytchev/OCanren}
+\item Реализация $\mu$Kanren с неравенствами (disequality constraints)
+\item Работает на большинстве оригинальных примеров
+\item Быстрее $\mu$Kanren (\url{https://github.com/Kakadu/ocanren-perf})
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{}
+
+Вопросы?
+\end{frame}
 \end{document}
