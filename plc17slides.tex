@@ -192,7 +192,7 @@ language=ocaml
 \begin{tabular}{m{6cm}m{6cm}}
  \graybox{$\inml{append} \colon \alpha\:\inml{list} \to \alpha\:\inml{list} \to \alpha\:\inml{list}$} &
  \graybox{$\oo{\inml{append}}\subseteq\alpha\:\inml{list}\times\alpha\:\inml{list}\times\alpha\:\inml{list}$}\\
- \begin{lstlisting}[language=ocaml]
+ \begin{lstlisting}[language=ocaml,keywordstyle=\bfseries]
 let rec append xs ys =
   match xs with
   | []      -> ys
@@ -285,7 +285,7 @@ Refinement: извлечение посчитанных ответов & $\inml{
 %
 % \end{frame}
 
-\begin{frame}[fragile]{Полиморфная унификация 1}
+\begin{frame}[fragile]{Полиморфная унификация 1 из 7}
 
 Работает для всех \emph{логических} типов $\alpha\; logic$ (он же $\oo{\alpha}$):
 
@@ -318,7 +318,7 @@ $$
 %        Type int is not compatible with type string
 % \end{lstlisting}
 
-\vskip3mm
+%\vskip3mm
 % Pitfalls:
 %
 % \begin{itemize}
@@ -331,19 +331,20 @@ $$
 \end{frame}
 
 
-\begin{frame}[fragile]{Подход для описания типов (на примере логического списка)}
+\begin{frame}[fragile]{Систематическое конструирование логических типов}
+  % mathescape=true,
   \begin{lstlisting}[mathescape=true]
-  type 'a logic = Var of int | Value of 'a
+  type $\alpha$ logic = Var of int | Value of $\alpha$
   ...!\pause!
-  type ('a, 'b) glist = Nil | Cons of 'a * 'b !\pause!
+  type ($\alpha$, $\beta$) glist = Nil | Cons of $\alpha$ * $\beta$ !\pause!
 
-  type 'a  list = ('a, 'a  list) glist !\pause!
+  type $\alpha$  list = ($\alpha$, $\alpha$ list) glist !\pause!
 
-  type 'a llist = ('a, 'a llist) glist logic !\pause!
+  type $\alpha$ llist = ($\alpha$, $\alpha$ llist) glist logic !\pause!
 
   ...
   # Value Nil
-  -: 'a llist
+  -: $\alpha$ llist
   # Value (Cons (Value 1), Value Nil)
   -: int logic llist
   # Value (Cons (Var 101), Value Nil)
@@ -440,10 +441,14 @@ $$
 
 \end{frame}
 
-{
-\setbeamercolor{background canvas}{bg=}
-\includepdf[pages={1}]{histo1.pdf}
-}
+%{
+%\setbeamercolor{background canvas}{bg=}
+% \includepdf[pages={1}]{histo1.pdf}
+%}
+\begin{frame}{Результаты сравнения производительности}
+\centering
+\includegraphics[scale=0.85]{histo1.pdf}
+\end{frame}
 
 \begin{frame}[fragile]{Дальнейшие задачи}
   \begin{itemize}
@@ -455,57 +460,38 @@ $$
 \end{frame}
 
 
-\begin{frame}[fragile]{Полиморфная унификация 2}
+% \begin{frame}[fragile]{Полиморфная унификация 2 из 7}
+%   %\begin{figure}
+%   \centering
+%   %\includegraphics[width=0.6\textwidth]{img0.pdf}
+%   \includegraphics[scale=0.5]{img0.png}
+%   %\end{figure}
+% \end{frame}
 
-% \pause
-\begin{figure}
-\centering
-\includegraphics[width=0.7\textwidth]{img0.eps}
-\end{figure}
-
+\begin{frame}[fragile]{Представление термов}
+  \centering
+  \includegraphics[width=0.9\textwidth]{img1.png}
+  %\end{figure}
 \end{frame}
 
-\begin{frame}[fragile]{Полиморфная унификация 3}
+% \begin{frame}[fragile]{Тегированное представление логических значений}
+%   \begin{figure}
+%   \centering
+%   \includegraphics[width=0.9\textwidth]{img2.png}
+%   \end{figure}
+% \end{frame}
 
-% \pause
-\begin{figure}
-\centering
-\includegraphics[width=0.7\textwidth]{img1.eps}
-\end{figure}
-
+\begin{frame}[fragile]{Тегированное представление логических значений}
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{img3.png}
+  \end{figure}
 \end{frame}
 
-\begin{frame}[fragile]{Полиморфная унификация 4}
-
-% \pause
+\begin{frame}[fragile]{Рост размера термов из-за тегирования}
 \begin{figure}
 \centering
-\includegraphics[width=0.9\textwidth]{img2.eps}
-\end{figure}
-
-\end{frame}
-
-\begin{frame}[fragile]{Полиморфная унификация 5}
-
-% \pause
-\begin{figure}
-\centering
-\includegraphics[width=0.9\textwidth]{img3.eps}
-\end{figure}
-
-\end{frame}
-
-\begin{frame}[fragile]{Полиморфная унификация 6}
-\begin{figure}
-\centering
-\includegraphics[width=0.9\textwidth]{img4.eps}
-\end{figure}
-\end{frame}
-
-\begin{frame}[fragile]{Полиморфная унификация 7: сравнение деревьев для двух подходов}
-\begin{figure}
-\centering
-\includegraphics[width=0.9\textwidth]{img5.eps}
+\includegraphics[width=0.9\textwidth]{img4.png}
 \end{figure}
 \end{frame}
 
@@ -520,6 +506,30 @@ $$
   \item Модернизировать подход по описанию типов логических значений
   \item Не потерять типовую безопасность
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Основная идея}
+\begin{itemize}
+ \item Унифицировать нетипизированнные термы
+ \item Преобразовывать к типизируемому представлению при refine
+ \item Запоминать формальные типы значений при каждом преобразовании к логическому значению
+\end{itemize}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\textwidth]{img5.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]{Тип injected}
+  \begin{lstlisting}[language=ml]
+  type ('a, 'b) injected!
+  \end{lstlisting}
+
+\vskip 1cm
+  Тип \verb='a= -- это исходный тип, а тип \verb='b= -- его логическое представление
+  
+  Представление ground-типов совпадает с представлением \verb='a=.
 \end{frame}
 
 \begin{frame}[fragile]{Конструирование логических значений для простых типов}
@@ -540,22 +550,22 @@ $$
 \end{frame}
 
 \begin{frame}[fragile]{Конструирование логических значений для сложных типов}
-  \begin{lstlisting}[language=ml]
+  \begin{lstlisting}[language=ml,mathescape=true]
   module Option = struct
-    type 'a option = None | Some of 'a
+    type $\alpha$ option = None | Some of $\alpha$
     let fmap = ....
   end!\pause!
 
   # Make1(Option).distrib
   ...!\pause!
   # let some x  = inj @@ distrib (Some x)
-  -: ('a, 'b) injected -> ('a option, 'b option logic) injected
+  -: ($\alpha$, $\beta$) injected -> $\qquad$($\alpha$ option, $\beta$ option logic) injected
   \end{lstlisting}
   \pause
 
-  Здесь \emph{fmap} нужен для доказательство того, что тип регулярный.\pause\\
-  Примитив \emph{distrib} позволяет ``снять'' тип со значения ничего не делая со
-  значением (он тоже identity).
+  Здесь \emph{fmap} нужен для доказательства того, что тип является функтором, т.е.
+  чтобы можно было описать примимитив \emph{distrib}, который позволяет ``снять'' 
+  тип со значения, ничего не делая со значением (он тоже identity).
 
 \end{frame}
 
@@ -563,15 +573,15 @@ $$
   Необходимо, так как значения в типе \emph{(\_,\_) injected} хранятся в
   нетипизированном виде.
 
-  \begin{lstlisting}[language=ml]
-    module Option = struct
-      type 'a option = None | Some of 'a
-      let fmap = ....
-    end!\pause!
+  \begin{lstlisting}[language=ml,mathescape=true]
+  module Option = struct
+    type $\alpha$ option = None | Some of $\alpha$
+    let fmap = ....
+  end!\pause!
 
     # Make1(Option).reify
-    -: ( ('a,'b) injected -> 'b) -> !\pause!
-       ('a option, 'b option logic) injected -> 'b option logic
+    -: ( ($\alpha$, $\beta$) injected -> $\qquad\beta$) -> !\pause!
+       ($\alpha$ option, $\beta$ option logic) injected -> $\qquad\beta$ option logic
 
   \end{lstlisting}
 
@@ -588,8 +598,13 @@ $$
 
 \end{frame}
 
-\begin{frame}[fragile]{}
+% \begin{frame}[fragile]{}
+% 
+% \centering
+% \begin{center}
+% \Huge Вопросы?
+% \end{center}
+% 
+% \end{frame}
 
-Вопросы?
-\end{frame}
 \end{document}
